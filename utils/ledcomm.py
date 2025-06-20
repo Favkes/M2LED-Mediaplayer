@@ -1,3 +1,10 @@
+"""
+Simple module made to allow communication between a python script and
+an arduino controlling an addressable LED-strip over a USB-cable.
+Allows for control over individual LEDs as well as broadcasting array values
+and mapping them onto the strip automatically (yet to get optimized).
+"""
+
 import serial
 import numpy as np
 
