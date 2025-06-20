@@ -1,16 +1,13 @@
-import threading
 import time
-import tkinter
-
 import numpy as np
-
-from utils import mp3dataextract
 import pydub
 import simpleaudio as sa
 
+from utils import data_extract
+
 
 source_path:       str                  = "../Music/Tenebre Rosso Sangue.mp3"
-time_progress_max: int                  = round(mp3dataextract.grab_duration(source_path) + 0.5)
+time_progress_max: int                  = round(data_extract.grab_duration(source_path) + 0.5)
 song_container:    pydub.AudioSegment   = pydub.AudioSegment.from_mp3(source_path)
 fps:               int                  = 30
 samples_per_frame: int                  = int(song_container.frame_rate / fps)
@@ -73,7 +70,7 @@ class Globals:
 
     @classmethod
     def load_from_path(cls):
-        cls.time_progress_max:  int                 = round(mp3dataextract.grab_duration(cls.source_path) + 0.5)
+        cls.time_progress_max:  int                 = round(data_extract.grab_duration(cls.source_path) + 0.5)
         cls.song_container:     pydub.AudioSegment  = pydub.AudioSegment.from_mp3(cls.source_path)
         cls.samples_per_frame:  int                 = int(cls.song_container.frame_rate / cls.fps)
 

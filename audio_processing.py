@@ -1,17 +1,15 @@
 import numpy as np
-import pydub
-import simpleaudio as sa
-from utils import m2led_functionality
 import time
-from utils.globals import Globals
-
 import cv2
+
+from utils.globals import Globals
+from utils import functionality
 
 
 def audio_thread(thread_index: int):
-    print('Creating playback thread of index', thread_index, 'with assigned life', Globals.is_playback_thread_alive[thread_index])
+    print('[Playback Daemon] Creating playback of index', thread_index)
     # Loading the play_buffer object
-    Globals.play_obj = m2led_functionality.get_wav_at_second(
+    Globals.play_obj = functionality.get_wav_at_second(
         Globals.song_container,
         Globals.time_progress
     ).play()
@@ -34,10 +32,6 @@ def audio_thread(thread_index: int):
     previous_frame_threshold = np.zeros(Globals.graph_x - Globals.bass_cut, np.uint8)
     noise_floor = np.zeros_like(previous_frame)
 
-    #TODO: REPLACE WITH TKINTER LOGIC
-    # cv2.namedWindow('Visual')
-    # cv2.namedWindow('Threshold')
-
     img = np.zeros((Globals.graph_y, Globals.graph_x, 3), np.uint8)
     img_threshold = np.zeros_like(img)
 
@@ -54,7 +48,6 @@ def audio_thread(thread_index: int):
             (255, 255, 0),
             1
         )
-        # m2led_functionality.drawline(canvas=)
 
         elapsed_sec = max(Globals.time_progress - Globals.time_offset, 0)
         current_sample = int(elapsed_sec * Globals.rate)
@@ -117,14 +110,11 @@ def audio_thread(thread_index: int):
                 cv2.line(img_threshold, previous_, current_, (0, 255, 255), 1)
                 previous_ = current_
 
-            # cv2.imshow('Visual', img)
-            # cv2.imshow('Threshold', img_threshold)
-
             Globals.graph_1 = img.copy()
             Globals.graph_2 = img_threshold.copy()
 
         if cv2.waitKey(10) == 27 or not Globals.is_playback_thread_alive[thread_index]:
-            print('Killing playback daemon of index', thread_index)
+            print('[Playback Daemon] Killing playback of index', thread_index)
             Globals.play_obj.stop()
             break
 

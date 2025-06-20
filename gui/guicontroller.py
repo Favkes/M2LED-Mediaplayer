@@ -1,18 +1,16 @@
 import tkinter as tk
 from tkinter import filedialog
-from utils import m2led_functionality, mp3dataextract
-import m2led_audioprocessing
-from utils.globals import Globals
 import time
 import threading
 from PIL import Image, ImageTk
-import pydub
+
+from utils import functionality, data_extract
+from utils.globals import Globals
+import audio_processing
 
 
-#TODO: Next we've got to successfully remake the m2led_audioprocessing.audio_thread() func
-#      to actually be callable from within this script.
-#      Then we have to consider the possibility of storing the entire tkinter structure
-#      in a separate file tree for better readibility, and containing it's functions in some
+#TODO: Now we have to consider the possibility of storing the entire tkinter structure
+#      in a separate file tree for better readability, and containing it's functions in some
 #      cleaner way as well.
 #      Then we just have to ensure that the graphs we've made are working nicely and
 #      accordingly, and theoretically all is done.
@@ -24,7 +22,7 @@ import pydub
 #         (either Selenium and manual youtube choosing (maybe a browser plugin?)
 #          or requests and command support)
 #       - Optimized project structure, docs, Github repo
-#       - Further quality optimalizations (communication module, better protocols, etc.)
+#       - Further quality optimizations (communication module, better protocols, etc.)
 
 
 root_window = tk.Tk()
@@ -62,13 +60,13 @@ def loadfile():
 def ready_playback():
     global cover_image_ref
 
-    print('Resetting playback thread...')
+    print('[Playback Init] Resetting playback thread...')
 
     # Scheduling the currently playing thread to die and allowing next one to exist
     Globals.switch_focused_playback_thread()
 
 
-    cover_image_ref = mp3dataextract.grab_cover(Globals.source_path)
+    cover_image_ref = data_extract.grab_cover(Globals.source_path)
     cover_image_label.config(
         image=cover_image_ref,
         width=300,
@@ -79,7 +77,7 @@ def ready_playback():
     Globals.reinit()
     # Rounding up
     Globals.time_progress_max = round(
-        mp3dataextract.grab_duration(Globals.source_path) + 0.5
+        data_extract.grab_duration(Globals.source_path) + 0.5
     )
     # Updating GUI elements
     slider_playback.config(
@@ -87,24 +85,24 @@ def ready_playback():
     )
     slider_playback.set(Globals.time_progress)
     title_label.config(
-        text=mp3dataextract.grab_name(Globals.source_path)
+        text=data_extract.grab_name(Globals.source_path)
     )
 
     # Loading raw data from file
     Globals.load_from_path()
 
     # Creating the new thread and tying it to its life indicator flag
-    print('Creating new playback thread...')
+    print('[Playback Init] Creating new playback thread...')
     Globals.playback_thread = threading.Thread(
-        target=m2led_audioprocessing.audio_thread,
+        target=audio_processing.audio_thread,
         args=(Globals.focused_playback_thread_index,),
         daemon=True
     )
     Globals.playback_thread.start()
-    print('Playback thread started.')
+    print('[Playback Init] Playback thread started.')
 
 
-cover_image_ref = mp3dataextract.grab_cover(Globals.source_path)
+cover_image_ref = data_extract.grab_cover(Globals.source_path)
 cover_image_label = tk.Label(
     cover_frame,
     image=cover_image_ref,
@@ -116,27 +114,27 @@ cover_image_label = tk.Label(
 #- TITLE LABEL
 title_label = tk.Label(
     main_frame,
-    text=mp3dataextract.grab_name(Globals.source_path),
+    text=data_extract.grab_name(Globals.source_path),
     wraplength=200
 )
 
 
 #- GRAPH CANVAS
-def graphdisplay_progressloop():
+def graph_display_asyncloop():
     global graph_1_image, graph_2_image
-    graph_1_image = m2led_functionality.convert_2_tkinter_image(Globals.graph_1)
-    graph_2_image = m2led_functionality.convert_2_tkinter_image(Globals.graph_2)
+    graph_1_image = functionality.convert_2_tkinter_image(Globals.graph_1)
+    graph_2_image = functionality.convert_2_tkinter_image(Globals.graph_2)
     graph_image_label.config(
         image=graph_1_image,
         width=Globals.graph_x,
         height=Globals.graph_y
     )
-    graph_image_postprocessed_label.config(
+    graph_image_post_processed_label.config(
         image=graph_2_image,
         width=Globals.graph_x,
         height=Globals.graph_y
     )
-    root_window.after(10, graphdisplay_progressloop)
+    root_window.after(10, graph_display_asyncloop)
 
 
 graph_1_image = ImageTk.PhotoImage(
@@ -151,7 +149,7 @@ graph_image_label = tk.Label(
     width=Globals.graph_x,
     height=Globals.graph_y
 )
-graph_image_postprocessed_label = tk.Label(
+graph_image_post_processed_label = tk.Label(
     graph_frame,
     image=graph_2_image,
     width=Globals.graph_x,
@@ -223,15 +221,15 @@ label_timedelta = tk.Label(
 
 
 #- PLAYBACK TIMELINE
-def playbacktimeline_sliderfunc(x):
+def playback_timeline_sliderfunc(x):
     # Globals.time_progress = float(x)
     label_playback.config(
-        text=f"{m2led_functionality.format_time(round(Globals.time_progress))} : "
-             f"{m2led_functionality.format_time(Globals.time_progress_max)}"
+        text=f"{functionality.format_time(round(Globals.time_progress))} : "
+             f"{functionality.format_time(Globals.time_progress_max)}"
     )
 
 
-def playbacktimeline_progressloop():
+def playback_timeline_asyncloop():
     current = slider_playback.get()
 
     # EOF:
@@ -245,8 +243,7 @@ def playbacktimeline_progressloop():
         # slider_playback.set(current + 1)
         Globals.calculate_time_progress()
         slider_playback.set(Globals.time_progress)
-        # print(Globals.time_progress)
-    root_window.after(100, playbacktimeline_progressloop)
+    root_window.after(100, playback_timeline_asyncloop)
 
 
 slider_playback = tk.Scale(
@@ -256,13 +253,13 @@ slider_playback = tk.Scale(
     orient="horizontal",
     showvalue=False,
     length=200,
-    command=playbacktimeline_sliderfunc
+    command=playback_timeline_sliderfunc
 )
 
 label_playback = tk.Label(
     controls_frame,
-    text=f"{m2led_functionality.format_time(round(Globals.time_progress))} : "
-         f"{m2led_functionality.format_time(Globals.time_progress_max)}"
+    text=f"{functionality.format_time(round(Globals.time_progress))} : "
+         f"{functionality.format_time(Globals.time_progress_max)}"
 )
 
 
@@ -282,21 +279,21 @@ def advanced_settings_buttonfunc():
             text=str(x)
         )
 
-    def temporalsmoothing_sliderfunc(x):
+    def temporal_smoothing_sliderfunc(x):
         Globals.temporal_smoothing = round(int(x)/20, 2)
-        temporalsmoothing_value_label.config(
+        temporal_smoothing_value_label.config(
             text=str(Globals.temporal_smoothing)
         )
 
-    def temporalsmoothingsecondary_sliderfunc(x):
+    def temporal_smoothing_secondary_sliderfunc(x):
         Globals.temporal_smoothing_secondary = round(int(x)/20, 2)
-        temporalsmoothingsecondary_value_label.config(
+        temporal_smoothing_secondary_value_label.config(
             text=str(Globals.temporal_smoothing_secondary)
         )
 
-    def noisedecay_sliderfunc(x):
+    def noise_decay_sliderfunc(x):
         Globals.noise_decay = round(int(x)/20, 2)
-        noisedecay_value_label.config(
+        noise_decay_value_label.config(
             text=str(Globals.noise_decay)
         )
 
@@ -322,109 +319,109 @@ def advanced_settings_buttonfunc():
     )
 
     # PRIMARY TEMPORAL SMOOTHING
-    temporalsmoothing_slider = tk.Scale(
+    temporal_smoothing_slider = tk.Scale(
         sliders_frame,
         from_=20,
         to=0,
         orient='vertical',
         showvalue=False,
         length=100,
-        command=lambda x: temporalsmoothing_sliderfunc(x)
+        command=lambda x: temporal_smoothing_sliderfunc(x)
     )
-    temporalsmoothing_slider.set(Globals.temporal_smoothing*20)
-    temporalsmoothing_label = tk.Label(
+    temporal_smoothing_slider.set(Globals.temporal_smoothing*20)
+    temporal_smoothing_label = tk.Label(
         sliders_frame,
         text="Temporal\nSmoothing"
     )
-    temporalsmoothing_value_label = tk.Label(
+    temporal_smoothing_value_label = tk.Label(
         sliders_frame,
         text=str(Globals.temporal_smoothing)
     )
 
     # SECONDARY TEMPORAL SMOOTHING
-    temporalsmoothingsecondary_slider = tk.Scale(
+    temporal_smoothing_secondary_slider = tk.Scale(
         sliders_frame,
         from_=20,
         to=0,
         orient='vertical',
         showvalue=False,
         length=100,
-        command=lambda x: temporalsmoothingsecondary_sliderfunc(x)
+        command=lambda x: temporal_smoothing_secondary_sliderfunc(x)
     )
-    temporalsmoothingsecondary_slider.set(Globals.temporal_smoothing_secondary*20)
-    temporalsmoothingsecondary_label = tk.Label(
+    temporal_smoothing_secondary_slider.set(Globals.temporal_smoothing_secondary*20)
+    temporal_smoothing_secondary_label = tk.Label(
         sliders_frame,
         text="Temporal\nSmoothing (2)"
     )
-    temporalsmoothingsecondary_value_label = tk.Label(
+    temporal_smoothing_secondary_value_label = tk.Label(
         sliders_frame,
         text=str(Globals.temporal_smoothing_secondary)
     )
 
     # SECONDARY TEMPORAL SMOOTHING
-    noisedecay_slider = tk.Scale(
+    noise_decay_slider = tk.Scale(
         sliders_frame,
         from_=20,
         to=0,
         orient='vertical',
         showvalue=False,
         length=100,
-        command=lambda x: noisedecay_sliderfunc(x)
+        command=lambda x: noise_decay_sliderfunc(x)
     )
-    noisedecay_slider.set(Globals.noise_decay * 20)
-    noisedecay_label = tk.Label(
+    noise_decay_slider.set(Globals.noise_decay * 20)
+    noise_decay_label = tk.Label(
         sliders_frame,
         text="Noise\nDecay"
     )
-    noisedecay_value_label = tk.Label(
+    noise_decay_value_label = tk.Label(
         sliders_frame,
         text=str(Globals.noise_decay)
     )
 
     # ------------------------- INITIALIZATION:
     # ACTIVATION THRESHOLD
-    xpadding = 5
+    x_padding = 5
     threshold_label.grid(
-        column=0, row=0, padx=xpadding
+        column=0, row=0, padx=x_padding
     )
     threshold_slider.grid(
-        column=0, row=1, padx=xpadding
+        column=0, row=1, padx=x_padding
     )
     threshold_value_label.grid(
-        column=0, row=2, padx=xpadding
+        column=0, row=2, padx=x_padding
     )
 
     # PRIMARY TEMPORAL SMOOTHING
-    temporalsmoothing_label.grid(
-        column=1, row=0, padx=xpadding
+    temporal_smoothing_label.grid(
+        column=1, row=0, padx=x_padding
     )
-    temporalsmoothing_slider.grid(
-        column=1, row=1, padx=xpadding
+    temporal_smoothing_slider.grid(
+        column=1, row=1, padx=x_padding
     )
-    temporalsmoothing_value_label.grid(
-        column=1, row=2, padx=xpadding
-    )
-
-    # SECONDARY TEMPORAL SMOOTHING
-    temporalsmoothingsecondary_label.grid(
-        column=2, row=0, padx=xpadding
-    )
-    temporalsmoothingsecondary_slider.grid(
-        column=2, row=1, padx=xpadding
-    )
-    temporalsmoothingsecondary_value_label.grid(
-        column=2, row=2, padx=xpadding
+    temporal_smoothing_value_label.grid(
+        column=1, row=2, padx=x_padding
     )
 
     # SECONDARY TEMPORAL SMOOTHING
-    noisedecay_label.grid(
-        column=3, row=0, padx=xpadding
+    temporal_smoothing_secondary_label.grid(
+        column=2, row=0, padx=x_padding
     )
-    noisedecay_slider.grid(
-        column=3, row=1, padx=xpadding
+    temporal_smoothing_secondary_slider.grid(
+        column=2, row=1, padx=x_padding
     )
-    noisedecay_value_label.grid(
-        column=3, row=2, padx=xpadding
+    temporal_smoothing_secondary_value_label.grid(
+        column=2, row=2, padx=x_padding
+    )
+
+    # SECONDARY TEMPORAL SMOOTHING
+    noise_decay_label.grid(
+        column=3, row=0, padx=x_padding
+    )
+    noise_decay_slider.grid(
+        column=3, row=1, padx=x_padding
+    )
+    noise_decay_value_label.grid(
+        column=3, row=2, padx=x_padding
     )
 
     # CLOSE BUTTON
@@ -457,7 +454,7 @@ graph_frame.grid(
 graph_image_label.grid(
     column=0, row=0
 )
-graph_image_postprocessed_label.grid(
+graph_image_post_processed_label.grid(
     column=0, row=1
 )
 
@@ -485,6 +482,6 @@ advanced_button.grid(
 
 # APP INITIALIZATION
 ready_playback()
-playbacktimeline_progressloop()
-graphdisplay_progressloop()
+playback_timeline_asyncloop()
+graph_display_asyncloop()
 root_window.mainloop()

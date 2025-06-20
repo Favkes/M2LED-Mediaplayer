@@ -1,11 +1,11 @@
-import tkinter
 from pydub import AudioSegment
 import simpleaudio as sa
 import numpy as np
 import time
-from utils.globals import Globals
 import cv2
 from PIL import Image, ImageTk
+
+from utils.globals import Globals
 
 
 #- FUNCTIONS
@@ -46,11 +46,3 @@ def change_activation_threshold(x) -> None:
 
 def change_time_offset(x) -> None:
     Globals.time_offset = -(x - 10) / 10
-
-
-#- OTHER PROCEDURES
-def drawline(canvas: tkinter.Canvas, pos1: tuple[int, int], pos2: tuple[int, int]):
-    x1, y1 = pos1
-    x2, y2 = pos2
-    canvas.create_line(x1, y1, x2, y2, fill="red")
-
