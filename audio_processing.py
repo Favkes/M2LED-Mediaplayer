@@ -6,8 +6,12 @@ from utils.globals import Globals
 from utils import functionality
 
 
+_bluetext = '\x1b[1;34;40m'
+_defaulttext = '\x1b[0m'
+
+
 def audio_thread(thread_index: int):
-    print('[Playback Daemon] Creating playback of index', thread_index)
+    print(_bluetext + '[Playback Thread] Creating playback of index', thread_index, _defaulttext)
     # Loading the play_buffer object
     Globals.play_obj = functionality.get_wav_at_second(
         Globals.song_container,
@@ -80,7 +84,7 @@ def audio_thread(thread_index: int):
 
             out_arr = cleaned[:Globals.graph_x - Globals.bass_cut]
             out_arr *= 2
-            out_arr = m2led_functionality.smooth_array(out_arr, kernel_size=7)
+            out_arr = functionality.smooth_array(out_arr, kernel_size=7)
 
             window_scaling_ratio = Globals.graph_y / (len(out_arr) * 10000)
             out_arr *= window_scaling_ratio
@@ -114,9 +118,10 @@ def audio_thread(thread_index: int):
             Globals.graph_2 = img_threshold.copy()
 
         if cv2.waitKey(10) == 27 or not Globals.is_playback_thread_alive[thread_index]:
-            print('[Playback Daemon] Killing playback of index', thread_index)
+            print(_bluetext + '[Playback Thread] Killing playback of index', thread_index, _defaulttext)
             Globals.play_obj.stop()
             break
+    print(_bluetext + '[Playback Thread] Thread killed and disconnected.' + _defaulttext)
 
 
 if __name__ == "__main__":

@@ -26,6 +26,8 @@ class Globals:
     is_paused                           = True                        # When paused with button
     is_unfinished                       = True                        # Only at file load
 
+    should_everything_die               = False                       # Flag to kill all threads for clean exit.
+
     is_playback_thread_alive            = [True, False]              # Used to safely close playback threads
     focused_playback_thread_index       = 0                           # Index of live playback thread (currently)
 
@@ -48,6 +50,7 @@ class Globals:
 
     graph_1: np.ndarray                 = None
     graph_2: np.ndarray                 = None
+    out_arr: np.ndarray                 = None
 
 
     @classmethod
@@ -67,6 +70,7 @@ class Globals:
 
         cls.graph_1 = np.zeros((cls.graph_y, cls.graph_x, 3), np.uint8)
         cls.graph_2 = np.zeros_like(cls.graph_1)
+        cls.out_arr = np.zeros(cls.win_x - cls.bass_cut)
 
     @classmethod
     def load_from_path(cls):
@@ -94,7 +98,11 @@ class Globals:
         """
         cls.time_progress = time.time() - cls.time_start - cls.time_paused_total
 
-
+    @classmethod
+    def killall(cls) -> None:
+        cls.should_everything_die = True
+        cls.is_unfinished = False
+        cls.is_playback_thread_alive = [False, False]
 
 
 del fps

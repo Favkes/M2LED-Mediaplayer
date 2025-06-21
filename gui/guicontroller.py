@@ -7,6 +7,7 @@ from PIL import Image, ImageTk
 from utils import functionality, data_extract
 from utils.globals import Globals
 import audio_processing
+from utils import ledcomm
 
 
 #TODO: Now we have to consider the possibility of storing the entire tkinter structure
@@ -25,6 +26,15 @@ import audio_processing
 #       - Further quality optimizations (communication module, better protocols, etc.)
 
 
+_greentext = '\x1b[1;32;40m'
+_bluetext = '\x1b[1;34;40m'
+_defaulttext = '\x1b[0m'
+
+
+print(_greentext + '[Main] Connecting to LED strip...' + _defaulttext)
+ledcomm.connect()
+
+print(_greentext + '[Main] Initializing components...' + _defaulttext)
 root_window = tk.Tk()
 root_window.title("M2LED alpha-1.1")
 root_window.geometry(f"{Globals.win_x}x{Globals.win_y}")
@@ -39,6 +49,9 @@ cover_frame = tk.Frame(main_frame, borderwidth=5)
 graph_frame = tk.Frame(main_frame, borderwidth=5)
 button_frame = tk.Frame(main_frame)
 controls_frame = tk.Frame(main_frame)
+
+# Starting the LED broadcasting thread
+ledcomm_thread = threading.Thread(target=ledcomm.arduino_comm_thread_func)
 
 
 #- COVER DISPLAY
@@ -60,7 +73,7 @@ def loadfile():
 def ready_playback():
     global cover_image_ref
 
-    print('[Playback Init] Resetting playback thread...')
+    print(_greentext + '[Main] Resetting playback thread...' + _defaulttext)
 
     # Scheduling the currently playing thread to die and allowing next one to exist
     Globals.switch_focused_playback_thread()
@@ -92,14 +105,16 @@ def ready_playback():
     Globals.load_from_path()
 
     # Creating the new thread and tying it to its life indicator flag
-    print('[Playback Init] Creating new playback thread...')
+    print(_greentext +  '[Main] Creating new playback thread...' + _defaulttext)
     Globals.playback_thread = threading.Thread(
         target=audio_processing.audio_thread,
         args=(Globals.focused_playback_thread_index,),
         daemon=True
     )
     Globals.playback_thread.start()
-    print('[Playback Init] Playback thread started.')
+    if not ledcomm_thread.is_alive():
+        ledcomm_thread.start()
+    print(_greentext + '[Main] Playback thread started.' + _defaulttext)
 
 
 cover_image_ref = data_extract.grab_cover(Globals.source_path)
@@ -441,6 +456,7 @@ advanced_button = tk.Button(
 
 
 #- OBJECT STRUCTURING
+print(_greentext + '[Main] Loading components...' + _defaulttext)
 cover_frame.grid(
     column=0, row=0)
 cover_image_label.grid(
@@ -481,7 +497,18 @@ advanced_button.grid(
 )
 
 # APP INITIALIZATION
+print(_greentext + '[Main] Initializing necessary threads...' + _defaulttext)
 ready_playback()
 playback_timeline_asyncloop()
 graph_display_asyncloop()
+
+
+def on_exit():
+    print(_greentext + "[Main] GUI closed by user, scheduling all threads to die." + _defaulttext)
+    Globals.killall()
+    root_window.destroy()
+
+
+print(_greentext + '[Main] Setup successful. Opening GUI.' + _defaulttext)
+root_window.protocol("WM_DELETE_WINDOW", on_exit)
 root_window.mainloop()
