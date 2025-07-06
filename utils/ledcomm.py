@@ -9,6 +9,7 @@ import serial
 import numpy as np
 from utils.globals import Globals
 import time
+from utils.simple_logs import log
 
 
 NUM_LEDS: int   = 185
@@ -16,11 +17,6 @@ PORT: str       = "COM3"
 BANDRATE: int   = 115200
 TIMEOUT: int    = 1
 ser: serial.Serial
-
-
-_greentext = '\x1b[1;32;40m'
-_bluetext = '\x1b[1;34;40m'
-_defaulttext = '\x1b[0m'
 
 
 def resize_strip(num_leds: int = 185):
@@ -83,10 +79,10 @@ def broadcast_colours(array: list | np.ndarray):
 
 
 def arduino_comm_thread_func():
-    print(_bluetext + '[LedComm Thread] Waiting for play_obj initialization to complete...' + _defaulttext)
+    log('[LedComm Thread] Waiting for play_obj initialization to complete...', 'yellow')
     while Globals.play_obj is None:
         time.sleep(0.1)
-    print(_bluetext + '[LedComm Thread] play_obj connected successfully.' + _defaulttext)
+    log('[LedComm Thread] play_obj connected successfully.', 'yellow')
     while not Globals.should_everything_die:
         time.sleep(0.1)
         while Globals.is_unfinished and not Globals.should_everything_die:
@@ -109,9 +105,9 @@ def arduino_comm_thread_func():
             broadcast_colours(instructions_array)
             # time.sleep(0.03)
     disconnect()
-    print(_bluetext + '[LedComm Thread] Thread killed and disconnected.' + _defaulttext)
+    log('[LedComm Thread] Thread killed and disconnected.', 'yellow')
 
 
 if __name__ == "__main__":
-    print(f"Resetting the strip at {PORT}.")
+    log(f"Resetting the strip at {PORT}.", 'yellow')
     connect()

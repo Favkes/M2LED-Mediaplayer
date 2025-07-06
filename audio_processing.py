@@ -4,14 +4,12 @@ import cv2
 
 from utils.globals import Globals
 from utils import functionality
-
-
-_bluetext = '\x1b[1;34;40m'
-_defaulttext = '\x1b[0m'
+from utils.simple_logs import log
 
 
 def audio_thread(thread_index: int):
-    print(_bluetext + '[Playback Thread] Creating playback of index', thread_index, _defaulttext)
+    log(f'[Playback Thread] Creating playback of index {thread_index}', 'blue')
+
     # Loading the play_buffer object
     Globals.play_obj = functionality.get_wav_at_second(
         Globals.song_container,
@@ -118,10 +116,10 @@ def audio_thread(thread_index: int):
             Globals.graph_2 = img_threshold.copy()
 
         if cv2.waitKey(10) == 27 or not Globals.is_playback_thread_alive[thread_index]:
-            print(_bluetext + '[Playback Thread] Killing playback of index', thread_index, _defaulttext)
+            log(f'[Playback Thread] Killing playback of index {thread_index}', 'blue')
             Globals.play_obj.stop()
             break
-    print(_bluetext + '[Playback Thread] Thread killed and disconnected.' + _defaulttext)
+    log('[Playback Thread] Thread killed and disconnected.', 'blue')
 
 
 if __name__ == "__main__":
