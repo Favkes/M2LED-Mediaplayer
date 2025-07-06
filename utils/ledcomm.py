@@ -102,7 +102,7 @@ def arduino_comm_thread_func():
                     continue
                 leddata = (
                     i,
-                    (val, 0, 0)
+                    (val, val//2, 0)
                 )
                 instructions_array.append(leddata)
             # print('Sending:', instructions_array)

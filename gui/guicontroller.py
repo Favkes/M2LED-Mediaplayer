@@ -221,7 +221,7 @@ def timeshift_sliderfunc(x):
 slider_timedelta = tk.Scale(
     controls_frame,
     from_=0,
-    to=30,
+    to=40,
     orient="horizontal",
     showvalue=False,
     length=200,
