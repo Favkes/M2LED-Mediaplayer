@@ -9,7 +9,16 @@ import serial
 import numpy as np
 from utils.globals import Globals
 import time
-from utils.simple_logs import log
+from utils.simple_logs import Logger, Logtype
+
+
+logger = Logger(__name__, 'yellow')
+
+
+# TODO:  Add a system of simple table presets, sent to the board at the
+#       moment of setting the "theme". Then only broadcast singular values
+#       that the arduino will map onto actual RGB data.
+#       Kind of like: {1 -> (255, 0, 0), 2 -> (255, 5, 0), ...}
 
 
 NUM_LEDS: int   = 185
@@ -29,6 +38,7 @@ def connect(port: str = PORT, bandrate: int = BANDRATE, timeout: int = TIMEOUT):
     PORT = port
     BANDRATE = bandrate
     TIMEOUT = timeout
+    logger.log('Initializing connection with the LED strip...', Logtype.init)
     ser = serial.Serial(port, bandrate, timeout=timeout)
 
 
@@ -79,10 +89,10 @@ def broadcast_colours(array: list | np.ndarray):
 
 
 def arduino_comm_thread_func():
-    log('[LedComm Thread] Waiting for play_obj initialization to complete...', 'yellow')
+    logger.log('Waiting for play_obj initialization to complete...', Logtype.info)
     while Globals.play_obj is None:
         time.sleep(0.1)
-    log('[LedComm Thread] play_obj connected successfully.', 'yellow')
+    logger.log('play_obj connected successfully.', Logtype.info)
     while not Globals.should_everything_die:
         time.sleep(0.1)
         while Globals.is_unfinished and not Globals.should_everything_die:
@@ -105,9 +115,9 @@ def arduino_comm_thread_func():
             broadcast_colours(instructions_array)
             # time.sleep(0.03)
     disconnect()
-    log('[LedComm Thread] Thread killed and disconnected.', 'yellow')
+    logger.log('Thread killed and disconnected.', Logtype.kill)
 
 
 if __name__ == "__main__":
-    log(f"Resetting the strip at {PORT}.", 'yellow')
+    logger.log(f"Resetting the strip at {PORT}.", Logtype.info)
     connect()

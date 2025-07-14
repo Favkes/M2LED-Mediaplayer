@@ -4,6 +4,10 @@ from PIL import Image, ImageTk
 from io import BytesIO
 
 
+# TODO: Add color palette extraction for automatic color-mapping
+#       (could be in functionality.py)
+
+
 def grab_cover(mp3_path, size: tuple[int, int] = (550, 550)):
     audio = MP3(mp3_path, ID3=ID3)
     for tag in audio.tags.values():

@@ -1,0 +1,503 @@
+import tkinter as tk
+from tkinter import filedialog
+import time
+import threading
+from PIL import Image, ImageTk
+
+from utils import functionality, data_extract
+from utils import ledcomm
+from utils.globals import Globals
+from utils.simple_logs import Logger, Logtype
+import audio_processing
+
+
+logger = Logger(__name__, 'purple')
+
+
+class AppStructure:
+    ledcomm_thread = None
+
+    def __init__(self):
+        logger.log('Connecting to LED strip...', Logtype.info)
+        ledcomm.connect()
+
+        logger.log('Initializing components...', Logtype.init)
+        self.root_window = tk.Tk()
+        self.root_window.title("M2LED Beta-1.0")
+        self.root_window.geometry(f"{Globals.win_x}x{Globals.win_y}")
+        self.root_window.resizable(False, False)
+
+        self.main_frame = tk.Frame(self.root_window)
+        self.main_frame.grid(
+            column=0, row=0
+        )
+
+        self.cover_frame = tk.Frame(self.main_frame, borderwidth=5)
+        self.graph_frame = tk.Frame(self.main_frame, borderwidth=5)
+        self.base_util_frame = tk.Frame(self.main_frame)
+        self.button_frame = tk.Frame(self.base_util_frame)
+        self.controls_frame = tk.Frame(self.base_util_frame)
+        self.advanced_frame = tk.Frame(self.main_frame)
+
+        self.cover_image_ref = data_extract.grab_cover(Globals.source_path)
+        self.cover_image_label = tk.Label(
+            self.cover_frame,
+            image=self.cover_image_ref,
+            width=300,
+            height=300
+        )
+        #- TITLE LABEL
+        self.title_label = tk.Label(
+            self.base_util_frame,
+            text=data_extract.grab_name(Globals.source_path),
+            wraplength=200
+        )
+
+        self.graph_1_image = ImageTk.PhotoImage(
+            Image.new('RGB', (Globals.graph_x, Globals.graph_y), color='black')
+        )
+        self.graph_2_image = ImageTk.PhotoImage(
+            Image.new('RGB', (Globals.graph_x, Globals.graph_y), color='black')
+        )
+        self.graph_image_label = tk.Label(
+            self.graph_frame,
+            image=self.graph_1_image,
+            width=Globals.graph_x,
+            height=Globals.graph_y
+        )
+        self.graph_image_post_processed_label = tk.Label(
+            self.graph_frame,
+            image=self.graph_2_image,
+            width=Globals.graph_x,
+            height=Globals.graph_y
+        )
+
+        self.button_startstop = tk.Button(
+            self.button_frame,
+            text="Start",
+            command=self.startstop_buttonfunc,
+            width=18
+        )
+
+        # - LOAD BUTTON
+        self.button_load = tk.Button(
+            self.button_frame,
+            text="Open File",
+            command=self.loadfile,
+            width=18
+        )
+
+        self.slider_timedelta = tk.Scale(
+            self.controls_frame,
+            from_=0,
+            to=40,
+            orient="horizontal",
+            showvalue=False,
+            length=200,
+            command=self.timeshift_sliderfunc
+        )
+        self.slider_timedelta.set(-Globals.time_offset * 20)
+
+        self.label_timedelta = tk.Label(
+            self.controls_frame,
+            text=f"Δt = {-Globals.time_offset:.2f} s"
+        )
+
+        self.slider_playback = tk.Scale(
+            self.controls_frame,
+            from_=0,
+            to=Globals.time_progress_max,
+            orient="horizontal",
+            showvalue=False,
+            length=200,
+            command=self.playback_timeline_sliderfunc
+        )
+
+        self.label_playback = tk.Label(
+            self.controls_frame,
+            text=f"{functionality.format_time(round(Globals.time_progress))} : "
+                 f"{functionality.format_time(Globals.time_progress_max)}"
+        )
+
+        self.advanced_button = tk.Button(
+            self.controls_frame,
+            text="Advanced Settings",
+            command=self.advanced_settings_buttonfunc
+        )
+
+        #- ADVANCED SETTINGS
+        # FUNCTIONS
+        def threshold_sliderfunc(x):
+            Globals.activation_threshold = int(x)
+            self.threshold_value_label.config(
+                text=str(x)
+            )
+
+        def temporal_smoothing_sliderfunc(x):
+            Globals.temporal_smoothing = round(int(x) / 20, 2)
+            self.temporal_smoothing_value_label.config(
+                text=str(Globals.temporal_smoothing)
+            )
+
+        def temporal_smoothing_secondary_sliderfunc(x):
+            Globals.temporal_smoothing_secondary = round(int(x) / 20, 2)
+            self.temporal_smoothing_secondary_value_label.config(
+                text=str(Globals.temporal_smoothing_secondary)
+            )
+
+        def noise_decay_sliderfunc(x):
+            Globals.noise_decay = round(int(x) / 20, 2)
+            self.noise_decay_value_label.config(
+                text=str(Globals.noise_decay)
+            )
+
+        # ACTIVATION THRESHOLD
+        self.threshold_slider = tk.Scale(
+            self.advanced_frame,
+            from_=Globals.graph_y,
+            to=0,
+            orient='vertical',
+            showvalue=False,
+            length=100,
+            command=lambda x: threshold_sliderfunc(x),
+        )
+        self.threshold_slider.set(Globals.activation_threshold)
+        self.threshold_label = tk.Label(
+            self.advanced_frame,
+            text="Activation\nThreshold"
+        )
+        self.threshold_value_label = tk.Label(
+            self.advanced_frame,
+            text=str(Globals.activation_threshold)
+        )
+
+        # PRIMARY TEMPORAL SMOOTHING
+        self.temporal_smoothing_slider = tk.Scale(
+            self.advanced_frame,
+            from_=20,
+            to=0,
+            orient='vertical',
+            showvalue=False,
+            length=100,
+            command=lambda x: temporal_smoothing_sliderfunc(x)
+        )
+        self.temporal_smoothing_slider.set(Globals.temporal_smoothing * 20)
+        self.temporal_smoothing_label = tk.Label(
+            self.advanced_frame,
+            text="Temporal\nSmoothing"
+        )
+        self.temporal_smoothing_value_label = tk.Label(
+            self.advanced_frame,
+            text=str(Globals.temporal_smoothing)
+        )
+
+        # SECONDARY TEMPORAL SMOOTHING
+        self.temporal_smoothing_secondary_slider = tk.Scale(
+            self.advanced_frame,
+            from_=20,
+            to=0,
+            orient='vertical',
+            showvalue=False,
+            length=100,
+            command=lambda x: temporal_smoothing_secondary_sliderfunc(x)
+        )
+        self.temporal_smoothing_secondary_slider.set(Globals.temporal_smoothing_secondary * 20)
+        self.temporal_smoothing_secondary_label = tk.Label(
+            self.advanced_frame,
+            text="Temporal\nSmoothing (2)"
+        )
+        self.temporal_smoothing_secondary_value_label = tk.Label(
+            self.advanced_frame,
+            text=str(Globals.temporal_smoothing_secondary)
+        )
+
+        # SECONDARY TEMPORAL SMOOTHING
+        self.noise_decay_slider = tk.Scale(
+            self.advanced_frame,
+            from_=20,
+            to=0,
+            orient='vertical',
+            showvalue=False,
+            length=100,
+            command=lambda x: noise_decay_sliderfunc(x)
+        )
+        self.noise_decay_slider.set(Globals.noise_decay * 20)
+        self.noise_decay_label = tk.Label(
+            self.advanced_frame,
+            text="Noise\nDecay"
+        )
+        self.noise_decay_value_label = tk.Label(
+            self.advanced_frame,
+            text=str(Globals.noise_decay)
+        )
+
+
+
+    def load(self):
+        # - OBJECT STRUCTURING
+        logger.log('Loading components...', Logtype.info)
+        self.cover_frame.grid(
+            column=0, row=0)
+        self.cover_image_label.grid(
+            column=0, row=0)
+
+        self.graph_frame.grid(
+            column=1, row=0
+        )
+        self.graph_image_label.grid(
+            column=0, row=0
+        )
+        self.graph_image_post_processed_label.grid(
+            column=0, row=1
+        )
+
+        self.base_util_frame.grid(
+            column=0, row=1
+        )
+        self.title_label.grid(
+            column=0, row=1)
+
+        self.button_frame.grid(
+            column=0, row=2)
+        self.button_startstop.grid(
+            column=0, row=2)
+        self.button_load.grid(
+            column=1, row=2)
+
+        self.controls_frame.grid(
+            column=0, row=3)
+        self.slider_timedelta.grid(
+            column=0, row=2)
+        self.label_timedelta.grid(
+            column=1, row=2)
+        self.slider_playback.grid(
+            column=0, row=3)
+        self.label_playback.grid(
+            column=1, row=3)
+
+        self.advanced_button.grid(
+            column=0, row=4
+        )
+        self.advanced_frame.grid(
+            column=1, row=1
+        )
+        # ACTIVATION THRESHOLD
+        x_padding = 5
+        self.threshold_label.grid(
+            column=0, row=0, padx=x_padding
+        )
+        self.threshold_slider.grid(
+            column=0, row=1, padx=x_padding
+        )
+        self.threshold_value_label.grid(
+            column=0, row=2, padx=x_padding
+        )
+
+        # PRIMARY TEMPORAL SMOOTHING
+        self.temporal_smoothing_label.grid(
+            column=1, row=0, padx=x_padding
+        )
+        self.temporal_smoothing_slider.grid(
+            column=1, row=1, padx=x_padding
+        )
+        self.temporal_smoothing_value_label.grid(
+            column=1, row=2, padx=x_padding
+        )
+
+        # SECONDARY TEMPORAL SMOOTHING
+        self.temporal_smoothing_secondary_label.grid(
+            column=2, row=0, padx=x_padding
+        )
+        self.temporal_smoothing_secondary_slider.grid(
+            column=2, row=1, padx=x_padding
+        )
+        self.temporal_smoothing_secondary_value_label.grid(
+            column=2, row=2, padx=x_padding
+        )
+
+        # SECONDARY TEMPORAL SMOOTHING
+        self.noise_decay_label.grid(
+            column=3, row=0, padx=x_padding
+        )
+        self.noise_decay_slider.grid(
+            column=3, row=1, padx=x_padding
+        )
+        self.noise_decay_value_label.grid(
+            column=3, row=2, padx=x_padding
+        )
+
+        # Frame borders visualization
+        # for child in self.main_frame.winfo_children():
+        #     child.config(
+        #         bd=2,
+        #         bg='green'
+        #     )
+        # self.main_frame.config(
+        #     bd=2,
+        #     bg='red'
+        # )
+
+
+    def loadfile(self):
+        source_path_ = tk.filedialog.askopenfilename(
+            initialdir='./Music',
+            title="Select an audio file",
+            filetypes=[("MP3 files", "*.mp3"), ("All Files", "*.*")]
+        )
+        if source_path_ == "":
+            return
+        Globals.source_path = source_path_
+
+        self.startstop_buttonfunc(force_pause=True)
+        self.ready_playback()
+
+
+    def ledcomm_init(self):
+        self.ledcomm_thread = threading.Thread(target=ledcomm.arduino_comm_thread_func)
+
+
+    def ready_playback(self):
+        logger.log('Resetting playback thread...', Logtype.info)
+
+        # Scheduling the currently playing thread to die and allowing next one to exist
+        Globals.switch_focused_playback_thread()
+
+        self.cover_image_ref = data_extract.grab_cover(Globals.source_path)
+        self.cover_image_label.config(
+            image=self.cover_image_ref,
+            width=300,
+            height=300
+        )
+
+        # Reinitializing the necessary variables
+        Globals.reinit()
+        # Rounding up
+        Globals.time_progress_max = round(
+            data_extract.grab_duration(Globals.source_path) + 0.5
+        )
+        # Updating GUI elements
+        self.slider_playback.config(
+            to=Globals.time_progress_max
+        )
+        self.slider_playback.set(Globals.time_progress)
+        self.title_label.config(
+            text=data_extract.grab_name(Globals.source_path)
+        )
+
+        # Loading raw data from file
+        Globals.load_from_path()
+
+        # Creating the new thread and tying it to its life indicator flag
+        logger.log('Creating new playback thread...', Logtype.create)
+        Globals.playback_thread = threading.Thread(
+            target=audio_processing.audio_thread,
+            args=(Globals.focused_playback_thread_index,),
+            daemon=True
+        )
+        Globals.playback_thread.start()
+        if not self.ledcomm_thread.is_alive():
+            self.ledcomm_thread.start()
+        time.sleep(0.001)
+        logger.log('Playback thread started.', Logtype.info)
+
+
+    def graph_display_asyncloop(self):
+        self.graph_1_image = functionality.convert_2_tkinter_image(Globals.graph_1)
+        self.graph_2_image = functionality.convert_2_tkinter_image(Globals.graph_2)
+        self.graph_image_label.config(
+            image=self.graph_1_image,
+            width=Globals.graph_x,
+            height=Globals.graph_y
+        )
+        self.graph_image_post_processed_label.config(
+            image=self.graph_2_image,
+            width=Globals.graph_x,
+            height=Globals.graph_y
+        )
+        self.root_window.after(10, self.graph_display_asyncloop)
+
+
+    def startstop_buttonfunc(self, force_pause: bool = False):
+        # Pausing
+        if not Globals.is_paused or force_pause:
+            Globals.is_paused = True
+            Globals.play_obj.pause()
+            Globals.time_paused_start = time.time()
+        # Resuming
+        else:
+            Globals.is_paused = False
+            Globals.play_obj.resume()
+            Globals.time_paused_total += time.time() - Globals.time_paused_start
+
+        self.button_startstop.config(text="Start" if Globals.is_paused else "Stop")
+
+        # If done playing and pressed -> play again
+        if not Globals.is_unfinished:
+            Globals.is_unfinished = True
+            self.ready_playback()
+
+
+    def timeshift_sliderfunc(self, x):
+        Globals.time_offset = -round(int(x) / 20, 2)
+        self.label_timedelta.config(
+            text=f"Δt = {-Globals.time_offset:.2f} s"
+        )
+
+
+    def playback_timeline_sliderfunc(self, x):
+        # Globals.time_progress = float(x)
+        self.label_playback.config(
+            text=f"{functionality.format_time(round(Globals.time_progress))} : "
+                 f"{functionality.format_time(Globals.time_progress_max)}"
+        )
+
+
+    def playback_timeline_asyncloop(self):
+        current = self.slider_playback.get()
+
+        # EOF:
+        if Globals.is_unfinished and current >= Globals.time_progress_max:
+            Globals.is_unfinished = False
+            Globals.is_paused = True
+            self.button_startstop.config(text="Start" if Globals.is_paused else "Stop")
+
+        # Playing:
+        if not Globals.is_paused and Globals.is_unfinished:
+            # slider_playback.set(current + 1)
+            Globals.calculate_time_progress()
+            self.slider_playback.set(Globals.time_progress)
+        self.root_window.after(100, self.playback_timeline_asyncloop)
+
+
+    def advanced_settings_buttonfunc(self):
+        # TODO: reassign to sth actually useful
+        settings_window = tk.Toplevel(self.root_window)
+        settings_window.title('Advanced Settings')
+        settings_window.geometry('300x200')
+
+        sliders_frame = tk.Frame(settings_window)
+        sliders_frame.pack()
+
+        # CLOSE BUTTON
+        close_button = tk.Button(
+            settings_window,
+            text = "Close",
+            command=settings_window.destroy
+        )
+        close_button.pack(pady=10)
+
+
+    def _on_exit(self):
+        logger.log("GUI closed by user, scheduling all threads to die.", Logtype.kill)
+        Globals.killall()
+        self.root_window.destroy()
+
+    def run_app(self):
+        logger.log('Initializing necessary threads...', Logtype.init)
+        self.ready_playback()
+        self.playback_timeline_asyncloop()
+        self.graph_display_asyncloop()
+
+        logger.log('Setup successful. Opening GUI.', Logtype.info)
+        self.root_window.protocol("WM_DELETE_WINDOW", self._on_exit)
+        self.root_window.mainloop()

@@ -6,7 +6,11 @@ import simpleaudio as sa
 from utils import data_extract
 
 
-source_path:       str                  = "../Music/Tenebre Rosso Sangue.mp3"
+# TODO: Add a preset file system to be able to save presets for
+#       each mp3, and then use them automatically (or not ofc)
+
+
+source_path:       str                  = "./Music/Tenebre Rosso Sangue.mp3"
 time_progress_max: int                  = round(data_extract.grab_duration(source_path) + 0.5)
 song_container:    pydub.AudioSegment   = pydub.AudioSegment.from_mp3(source_path)
 fps:               int                  = 30
@@ -102,7 +106,7 @@ class Globals:
     def killall(cls) -> None:
         cls.should_everything_die = True
         cls.is_unfinished = False
-        cls.is_playback_thread_alive = [False, False]
+        cls.is_playback_thread_alive[:] = [False] * len(cls.is_playback_thread_alive)
 
 
 del fps

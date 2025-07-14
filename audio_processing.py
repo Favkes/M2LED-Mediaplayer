@@ -4,11 +4,17 @@ import cv2
 
 from utils.globals import Globals
 from utils import functionality
-from utils.simple_logs import log
+from utils.simple_logs import Logger, Logtype
+
+
+# TODO: Clean up the thread body, add controls to minor variables
+
+
+logger = Logger(__name__, 'blue')
 
 
 def audio_thread(thread_index: int):
-    log(f'[Playback Thread] Creating playback of index {thread_index}', 'blue')
+    logger.log(f'Creating playback of index {thread_index}', Logtype.create)
 
     # Loading the play_buffer object
     Globals.play_obj = functionality.get_wav_at_second(
@@ -116,10 +122,10 @@ def audio_thread(thread_index: int):
             Globals.graph_2 = img_threshold.copy()
 
         if cv2.waitKey(10) == 27 or not Globals.is_playback_thread_alive[thread_index]:
-            log(f'[Playback Thread] Killing playback of index {thread_index}', 'blue')
+            logger.log(f'Killing playback of index {thread_index}', Logtype.kill)
             Globals.play_obj.stop()
             break
-    log('[Playback Thread] Thread killed and disconnected.', 'blue')
+    logger.log('Thread killed and disconnected.', Logtype.kill)
 
 
 if __name__ == "__main__":
