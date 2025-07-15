@@ -1,18 +1,15 @@
 
 ## **About**
-***
 M2LED is an open-source software project aiming at 
 allowing simple and explicit control over 
 LED-Strip controlling software.
 
 
 ## **Execution**
-***
 To run the program, simply open `run.bat` .
 
 
 ## **Intents**
-***
 My main goal in the development of this project,
 is creating an intermediate, comprehensible example
 of how someone just beginning their software development
