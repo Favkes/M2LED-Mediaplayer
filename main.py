@@ -1,6 +1,11 @@
 from utils.globals import Globals
 from utils.simple_logs import Logger, Logtype
 from gui import core
+import colorama
+
+
+# Initializing color support for cmd.exe
+colorama.init()
 
 
 logger = Logger(__name__, 'green')
