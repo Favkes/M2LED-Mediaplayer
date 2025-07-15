@@ -18,5 +18,5 @@ might structure their projects, especially
 (but not exclusively) those written in the
 Python programming language.
 
-After all, this is my own humble attempt at
-learning the way, as well.
+_After all, this is my own humble attempt at
+learning the way, as well._
