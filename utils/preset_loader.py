@@ -8,6 +8,7 @@ from gui.slider import Slider
 def save_settings() -> None:
     settings = {
         'time_offset': Globals.time_offset,
+        'activation_threshold': Globals.activation_threshold,
         'temporal_smoothing': Globals.temporal_smoothing,
         'temporal_smoothing_secondary': Globals.temporal_smoothing_secondary,
         'noise_decay': Globals.noise_decay
