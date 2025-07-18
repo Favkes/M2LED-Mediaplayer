@@ -1,5 +1,9 @@
-# from utils.globals import Globals
+from utils.globals import Globals
 import tkinter as tk
+from utils.simple_logs import Logger, Logtype
+
+
+logger = Logger(__name__, 'blue')
 
 
 class Slider:
@@ -12,12 +16,17 @@ class Slider:
                  showvalue: bool = False,
                  length: int = 100,
                  command = lambda x: None,
+                 linked_global: str = None,
+                 input_to_global_ratio: float = 1,
                  label_text: str = 'Name') -> None:
+
         self.parent = parent_frame
         self.value = start
         self.from_ = from_
         self.to = to
         self.length = length
+        self.linked_global = linked_global
+        self.input_to_global_ratio = input_to_global_ratio
 
         self.scale = tk.Scale(
             parent_frame,
@@ -56,8 +65,20 @@ class Slider:
 
 
     def update(self, val: int | float,
-               label_multiplier: int | float = 1) -> None:
-        scale_val = round(val, 2)
-        label_val = round(val * label_multiplier, 2)
+               label_val: bool = False) -> None:
+
+        if label_val:
+            scale_val = round(val / self.input_to_global_ratio, 2)
+            label_val = round(val, 2)
+        else:
+            scale_val = round(val, 2)
+            label_val = round(val * self.input_to_global_ratio, 2)
+
         self.scale.set(scale_val)
         self.value_label.config(text=str(label_val))
+
+        try:
+            label_val = type( getattr(Globals, self.linked_global) )(label_val)
+            setattr(Globals, self.linked_global, label_val)
+        except Exception as e:
+            logger.log(f'{e}', Logtype.error)
