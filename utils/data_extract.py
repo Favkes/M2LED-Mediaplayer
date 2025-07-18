@@ -1,5 +1,5 @@
 from mutagen.mp3 import MP3
-from mutagen.id3 import ID3, APIC, COMM
+from mutagen.id3 import ID3, APIC, COMM, ID3NoHeaderError
 from PIL import Image, ImageTk
 from io import BytesIO
 
@@ -33,10 +33,13 @@ def grab_name(mp3_path):
 
 
 def check_uuid(mp3_path) -> str | None:
-    audio = MP3(mp3_path, ID3=ID3)
     try:
-        return audio.tags['uuid']
-    except KeyError:
+        tags = ID3(mp3_path)
+        for frame in tags.getall('COMM'):
+            if frame.desc == 'uuid':
+                return frame.text[0]
+        return None
+    except ID3NoHeaderError:
         return None
 
 
