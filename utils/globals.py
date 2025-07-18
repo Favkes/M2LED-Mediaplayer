@@ -2,6 +2,7 @@ import time
 import numpy as np
 import pydub
 import simpleaudio as sa
+import json
 
 from utils import data_extract
 
@@ -32,7 +33,7 @@ class Globals:
 
     should_everything_die               = False                       # Flag to kill all threads for clean exit.
 
-    is_playback_thread_alive            = [True, False]              # Used to safely close playback threads
+    is_playback_thread_alive            = [True, False]               # Used to safely close playback threads
     focused_playback_thread_index       = 0                           # Index of live playback thread (currently)
 
     time_start                          = -1
@@ -47,6 +48,8 @@ class Globals:
     samples_per_frame                   = samples_per_frame
     source_path                         = source_path                 # MP3 file path
     song_container                      = song_container              # Raw data from MP3 file
+
+    uuid: str                           = None
 
     temporal_smoothing                  = 0.9                         # Main processing
     temporal_smoothing_secondary        = 0.7                         # Post-processing
@@ -107,6 +110,30 @@ class Globals:
         cls.should_everything_die = True
         cls.is_unfinished = False
         cls.is_playback_thread_alive[:] = [False] * len(cls.is_playback_thread_alive)
+
+    @classmethod
+    def save_settings(cls) -> None:
+        settings = {
+            'time_offset': cls.time_offset,
+            'temporal_smoothing': cls.temporal_smoothing,
+            'temporal_smoothing_secondary': cls.temporal_smoothing_secondary,
+            'noise_decay': cls.noise_decay
+        }
+        with open('data/default_preset.json', 'w+') as file:
+            json.dump(settings, file, indent=4)
+
+    @classmethod
+    def load_settings(cls, default: bool = False) -> None:
+        if default:
+            path = 'data/default_preset.json'
+        else:
+            path = f'presets/{Globals.uuid}.json'
+
+        with open(path) as file:
+            settings: dict = json.load(file)
+
+        for key, value in settings.items():
+            setattr(cls, key, value)
 
 
 del fps

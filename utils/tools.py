@@ -4,6 +4,7 @@ import numpy as np
 import time
 import cv2
 from PIL import Image, ImageTk
+import uuid
 
 from utils.globals import Globals
 
@@ -30,6 +31,11 @@ def get_wav_at_second(container: AudioSegment, second: float) -> sa.WaveObject:
         bytes_per_sample=segment.sample_width,
         sample_rate=segment.frame_rate
     )
+
+
+def generate_uuid() -> str:
+    return str(uuid.uuid4())
+
 
 
 def convert_2_tkinter_image(img: np.ndarray):

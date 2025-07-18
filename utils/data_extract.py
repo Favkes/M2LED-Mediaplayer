@@ -1,11 +1,11 @@
 from mutagen.mp3 import MP3
-from mutagen.id3 import ID3, APIC
+from mutagen.id3 import ID3, APIC, COMM
 from PIL import Image, ImageTk
 from io import BytesIO
 
 
 # TODO: Add color palette extraction for automatic color-mapping
-#       (could be in functionality.py)
+#       (could be in tools.py)
 
 
 def grab_cover(mp3_path, size: tuple[int, int] = (550, 550)):
@@ -30,3 +30,24 @@ def grab_name(mp3_path):
     title_tag = audio.tags.get('TIT2')
     if title_tag: return title_tag
     return "-Untitled-"
+
+
+def check_uuid(mp3_path) -> str | None:
+    audio = MP3(mp3_path, ID3=ID3)
+    try:
+        return audio.tags['uuid']
+    except KeyError:
+        return None
+
+
+def add_uuid(mp3_path, uuid: str) -> None:
+    audio = MP3(mp3_path, ID3=ID3)
+
+    # Ensuring .tags is not None
+    if audio.tags is None:
+        audio.add_tags()
+
+    audio.tags.add(
+        COMM(encoding=3, lang='eng', desc='uuid', text=uuid)
+    )
+    audio.save()
