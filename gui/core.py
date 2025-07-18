@@ -4,11 +4,13 @@ import time
 import threading
 from PIL import Image, ImageTk
 
-from utils import functionality, data_extract
+from utils import tools, data_extract
 from utils import ledcomm
 from utils.globals import Globals
 from utils.simple_logs import Logger, Logtype
 import audio_processing
+from gui.slider import Slider
+import gui.handlers
 
 
 logger = Logger(__name__, 'purple')
@@ -125,110 +127,53 @@ class AppStructure:
             command=self.advanced_settings_buttonfunc
         )
 
-        #- ADVANCED SETTINGS
-        # FUNCTIONS
-        def threshold_sliderfunc(x):
-            Globals.activation_threshold = int(x)
-            self.threshold_value_label.config(
-                text=str(x)
-            )
-
-        def temporal_smoothing_sliderfunc(x):
-            Globals.temporal_smoothing = round(int(x) / 20, 2)
-            self.temporal_smoothing_value_label.config(
-                text=str(Globals.temporal_smoothing)
-            )
-
-        def temporal_smoothing_secondary_sliderfunc(x):
-            Globals.temporal_smoothing_secondary = round(int(x) / 20, 2)
-            self.temporal_smoothing_secondary_value_label.config(
-                text=str(Globals.temporal_smoothing_secondary)
-            )
-
-        def noise_decay_sliderfunc(x):
-            Globals.noise_decay = round(int(x) / 20, 2)
-            self.noise_decay_value_label.config(
-                text=str(Globals.noise_decay)
-            )
 
         # ACTIVATION THRESHOLD
-        self.threshold_slider = tk.Scale(
-            self.advanced_frame,
+        self.threshold_slider = Slider(
+            parent_frame=self.advanced_frame,
             from_=Globals.graph_y,
             to=0,
-            orient='vertical',
-            showvalue=False,
+            start=Globals.activation_threshold,
             length=100,
-            command=lambda x: threshold_sliderfunc(x),
-        )
-        self.threshold_slider.set(Globals.activation_threshold)
-        self.threshold_label = tk.Label(
-            self.advanced_frame,
-            text="Activation\nThreshold"
-        )
-        self.threshold_value_label = tk.Label(
-            self.advanced_frame,
-            text=str(Globals.activation_threshold)
+            command=lambda x: gui.handlers.threshold_sliderfunc(self, x),
+
+            label_text="Activation\nThreshold"
         )
 
         # PRIMARY TEMPORAL SMOOTHING
-        self.temporal_smoothing_slider = tk.Scale(
-            self.advanced_frame,
+        self.temporal_smoothing_slider = Slider(
+            parent_frame=self.advanced_frame,
             from_=20,
             to=0,
-            orient='vertical',
-            showvalue=False,
+            start=Globals.temporal_smoothing * 20,
             length=100,
-            command=lambda x: temporal_smoothing_sliderfunc(x)
-        )
-        self.temporal_smoothing_slider.set(Globals.temporal_smoothing * 20)
-        self.temporal_smoothing_label = tk.Label(
-            self.advanced_frame,
-            text="Temporal\nSmoothing"
-        )
-        self.temporal_smoothing_value_label = tk.Label(
-            self.advanced_frame,
-            text=str(Globals.temporal_smoothing)
+            command=lambda x: gui.handlers.temporal_smoothing_sliderfunc(self, x),
+
+            label_text="Temporal\nSmoothing"
         )
 
         # SECONDARY TEMPORAL SMOOTHING
-        self.temporal_smoothing_secondary_slider = tk.Scale(
-            self.advanced_frame,
+        self.temporal_smoothing_secondary_slider = Slider(
+            parent_frame=self.advanced_frame,
             from_=20,
             to=0,
-            orient='vertical',
-            showvalue=False,
+            start=Globals.temporal_smoothing_secondary * 20,
             length=100,
-            command=lambda x: temporal_smoothing_secondary_sliderfunc(x)
-        )
-        self.temporal_smoothing_secondary_slider.set(Globals.temporal_smoothing_secondary * 20)
-        self.temporal_smoothing_secondary_label = tk.Label(
-            self.advanced_frame,
-            text="Temporal\nSmoothing (2)"
-        )
-        self.temporal_smoothing_secondary_value_label = tk.Label(
-            self.advanced_frame,
-            text=str(Globals.temporal_smoothing_secondary)
+            command=lambda x: gui.handlers.temporal_smoothing_secondary_sliderfunc(self, x),
+
+            label_text="Temporal\nSmoothing (2)"
         )
 
-        # SECONDARY TEMPORAL SMOOTHING
-        self.noise_decay_slider = tk.Scale(
-            self.advanced_frame,
+        # NOISE DECAY
+        self.noise_decay_slider = Slider(
+            parent_frame=self.advanced_frame,
             from_=20,
             to=0,
-            orient='vertical',
-            showvalue=False,
+            start=Globals.noise_decay * 20,
             length=100,
-            command=lambda x: noise_decay_sliderfunc(x)
-        )
-        self.noise_decay_slider.set(Globals.noise_decay * 20)
-        self.noise_decay_label = tk.Label(
-            self.advanced_frame,
-            text="Noise\nDecay"
-        )
-        self.noise_decay_value_label = tk.Label(
-            self.advanced_frame,
-            text=str(Globals.noise_decay)
+            command=lambda x: gui.handlers.noise_decay_sliderfunc(self, x),
+
+            label_text="Noise\nDecay"
         )
 
 
@@ -281,49 +226,23 @@ class AppStructure:
         self.advanced_frame.grid(
             column=1, row=1
         )
-        # ACTIVATION THRESHOLD
+
         x_padding = 5
-        self.threshold_label.grid(
-            column=0, row=0, padx=x_padding
-        )
+        # ACTIVATION THRESHOLD
         self.threshold_slider.grid(
-            column=0, row=1, padx=x_padding
+            start_col=0, start_row=0, padx=x_padding
         )
-        self.threshold_value_label.grid(
-            column=0, row=2, padx=x_padding
-        )
-
         # PRIMARY TEMPORAL SMOOTHING
-        self.temporal_smoothing_label.grid(
-            column=1, row=0, padx=x_padding
-        )
         self.temporal_smoothing_slider.grid(
-            column=1, row=1, padx=x_padding
+            start_col=1, start_row=0, padx=x_padding
         )
-        self.temporal_smoothing_value_label.grid(
-            column=1, row=2, padx=x_padding
-        )
-
         # SECONDARY TEMPORAL SMOOTHING
-        self.temporal_smoothing_secondary_label.grid(
-            column=2, row=0, padx=x_padding
-        )
         self.temporal_smoothing_secondary_slider.grid(
-            column=2, row=1, padx=x_padding
+            start_col=2, start_row=0, padx=x_padding
         )
-        self.temporal_smoothing_secondary_value_label.grid(
-            column=2, row=2, padx=x_padding
-        )
-
-        # SECONDARY TEMPORAL SMOOTHING
-        self.noise_decay_label.grid(
-            column=3, row=0, padx=x_padding
-        )
+        # NOISE DECAY
         self.noise_decay_slider.grid(
-            column=3, row=1, padx=x_padding
-        )
-        self.noise_decay_value_label.grid(
-            column=3, row=2, padx=x_padding
+            start_col=3, start_row=0, padx=x_padding
         )
 
         # Frame borders visualization
@@ -347,6 +266,17 @@ class AppStructure:
         if source_path_ == "":
             return
         Globals.source_path = source_path_
+
+        logger.log('Loading preset settings...', code=Logtype.info)
+
+        mp3_id = data_extract.check_uuid(Globals.source_path)
+        if mp3_id is None:
+            mp3_id = functionality.generate_uuid()
+        Globals.uuid = mp3_id
+        data_extract.add_uuid(Globals.source_path, Globals.uuid)
+        Globals.load_settings(default=True)
+
+        logger.log('Loading preset settings complete.', code=Logtype.info)
 
         self.startstop_buttonfunc(force_pause=True)
         self.ready_playback()
@@ -448,7 +378,7 @@ class AppStructure:
         # Globals.time_progress = float(x)
         self.label_playback.config(
             text=f"{functionality.format_time(round(Globals.time_progress))} : "
-                 f"{functionality.format_time(Globals.time_progress_max)}"
+                 f"{tools.format_time(Globals.time_progress_max)}"
         )
 
 
