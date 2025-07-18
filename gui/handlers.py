@@ -1,6 +1,10 @@
 from utils.globals import Globals
 
 
+def timeshift_sliderfunc(app, x):
+    app.slider_timedelta.update(int(x))
+
+
 #- ADVANCED SETTINGS
 def threshold_sliderfunc(app, x):
     app.threshold_slider.update(int(x))
