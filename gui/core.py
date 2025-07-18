@@ -117,8 +117,8 @@ class AppStructure:
 
         self.label_playback = tk.Label(
             self.controls_frame,
-            text=f"{functionality.format_time(round(Globals.time_progress))} : "
-                 f"{functionality.format_time(Globals.time_progress_max)}"
+            text=f"{tools.format_time(round(Globals.time_progress))} : "
+                 f"{tools.format_time(Globals.time_progress_max)}"
         )
 
         self.advanced_button = tk.Button(
@@ -133,10 +133,13 @@ class AppStructure:
             parent_frame=self.advanced_frame,
             from_=Globals.graph_y,
             to=0,
-            start=Globals.activation_threshold,
             length=100,
-            command=lambda x: gui.handlers.threshold_sliderfunc(self, x),
 
+            start=Globals.activation_threshold,
+            linked_global='activation_threshold',
+            input_to_global_ratio=1/1,
+
+            command=lambda x: gui.handlers.threshold_sliderfunc(self, x),
             label_text="Activation\nThreshold"
         )
 
@@ -145,10 +148,13 @@ class AppStructure:
             parent_frame=self.advanced_frame,
             from_=20,
             to=0,
-            start=Globals.temporal_smoothing * 20,
             length=100,
-            command=lambda x: gui.handlers.temporal_smoothing_sliderfunc(self, x),
 
+            start=Globals.temporal_smoothing,
+            linked_global='temporal_smoothing',
+            input_to_global_ratio=1/20,
+
+            command=lambda x: gui.handlers.temporal_smoothing_sliderfunc(self, x),
             label_text="Temporal\nSmoothing"
         )
 
@@ -157,10 +163,13 @@ class AppStructure:
             parent_frame=self.advanced_frame,
             from_=20,
             to=0,
-            start=Globals.temporal_smoothing_secondary * 20,
             length=100,
-            command=lambda x: gui.handlers.temporal_smoothing_secondary_sliderfunc(self, x),
 
+            start=Globals.temporal_smoothing_secondary,
+            linked_global='temporal_smoothing_secondary',
+            input_to_global_ratio=1/20,
+
+            command=lambda x: gui.handlers.temporal_smoothing_secondary_sliderfunc(self, x),
             label_text="Temporal\nSmoothing (2)"
         )
 
@@ -169,8 +178,12 @@ class AppStructure:
             parent_frame=self.advanced_frame,
             from_=20,
             to=0,
-            start=Globals.noise_decay * 20,
             length=100,
+
+            start=Globals.noise_decay,
+            linked_global="noise_decay",
+            input_to_global_ratio=1/20,
+
             command=lambda x: gui.handlers.noise_decay_sliderfunc(self, x),
 
             label_text="Noise\nDecay"
@@ -271,7 +284,7 @@ class AppStructure:
 
         mp3_id = data_extract.check_uuid(Globals.source_path)
         if mp3_id is None:
-            mp3_id = functionality.generate_uuid()
+            mp3_id = tools.generate_uuid()
         Globals.uuid = mp3_id
         data_extract.add_uuid(Globals.source_path, Globals.uuid)
         Globals.load_settings(default=True)
@@ -332,8 +345,8 @@ class AppStructure:
 
 
     def graph_display_asyncloop(self):
-        self.graph_1_image = functionality.convert_2_tkinter_image(Globals.graph_1)
-        self.graph_2_image = functionality.convert_2_tkinter_image(Globals.graph_2)
+        self.graph_1_image = tools.convert_2_tkinter_image(Globals.graph_1)
+        self.graph_2_image = tools.convert_2_tkinter_image(Globals.graph_2)
         self.graph_image_label.config(
             image=self.graph_1_image,
             width=Globals.graph_x,
@@ -377,7 +390,7 @@ class AppStructure:
     def playback_timeline_sliderfunc(self, x):
         # Globals.time_progress = float(x)
         self.label_playback.config(
-            text=f"{functionality.format_time(round(Globals.time_progress))} : "
+            text=f"{tools.format_time(round(Globals.time_progress))} : "
                  f"{tools.format_time(Globals.time_progress_max)}"
         )
 
