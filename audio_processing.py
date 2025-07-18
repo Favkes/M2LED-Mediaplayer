@@ -3,7 +3,7 @@ import time
 import cv2
 
 from utils.globals import Globals
-from utils import functionality
+from utils import tools
 from utils.simple_logs import Logger, Logtype
 
 
@@ -88,7 +88,7 @@ def audio_thread(thread_index: int):
 
             out_arr = cleaned[:Globals.graph_x - Globals.bass_cut]
             out_arr *= 2
-            out_arr = functionality.smooth_array(out_arr, kernel_size=7)
+            out_arr = tools.smooth_array(out_arr, kernel_size=7)
 
             window_scaling_ratio = Globals.graph_y / (len(out_arr) * 10000)
             out_arr *= window_scaling_ratio
