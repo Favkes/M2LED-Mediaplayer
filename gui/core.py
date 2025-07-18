@@ -4,8 +4,7 @@ import time
 import threading
 from PIL import Image, ImageTk
 
-from utils import tools, data_extract
-from utils import ledcomm
+from utils import tools, data_extract, ledcomm, preset_loader
 from utils.globals import Globals
 from utils.simple_logs import Logger, Logtype
 import audio_processing
@@ -89,20 +88,20 @@ class AppStructure:
             width=18
         )
 
-        self.slider_timedelta = tk.Scale(
-            self.controls_frame,
+        self.slider_timedelta = Slider(
+            parent_frame=self.controls_frame,
+            orient='horizontal',
             from_=0,
             to=40,
-            orient="horizontal",
-            showvalue=False,
             length=200,
-            command=self.timeshift_sliderfunc
-        )
-        self.slider_timedelta.set(-Globals.time_offset * 20)
 
-        self.label_timedelta = tk.Label(
-            self.controls_frame,
-            text=f"Δt = {-Globals.time_offset:.2f} s"
+            start=Globals.time_offset,
+            input_to_global_ratio=-1/20,
+            linked_global='time_offset',
+
+            command=lambda x: gui.handlers.timeshift_sliderfunc(self, x),
+            showlabel=False,
+            value_label_format='Δt = {:.2f} s'
         )
 
         self.slider_playback = tk.Scale(
@@ -225,9 +224,8 @@ class AppStructure:
         self.controls_frame.grid(
             column=0, row=3)
         self.slider_timedelta.grid(
-            column=0, row=2)
-        self.label_timedelta.grid(
-            column=1, row=2)
+            start_col=0, start_row=2
+        )
         self.slider_playback.grid(
             column=0, row=3)
         self.label_playback.grid(
@@ -287,7 +285,9 @@ class AppStructure:
             mp3_id = tools.generate_uuid()
         Globals.uuid = mp3_id
         data_extract.add_uuid(Globals.source_path, Globals.uuid)
-        Globals.load_settings(default=True)
+
+        # Loading settings from the file into Globals
+        preset_loader.load_settings(default=False)
 
         logger.log('Loading preset settings complete.', code=Logtype.info)
 
@@ -378,13 +378,6 @@ class AppStructure:
         if not Globals.is_unfinished:
             Globals.is_unfinished = True
             self.ready_playback()
-
-
-    def timeshift_sliderfunc(self, x):
-        Globals.time_offset = -round(int(x) / 20, 2)
-        self.label_timedelta.config(
-            text=f"Δt = {-Globals.time_offset:.2f} s"
-        )
 
 
     def playback_timeline_sliderfunc(self, x):
