@@ -1,0 +1,6 @@
+{
+    "time_offset": -0.65,
+    "temporal_smoothing": 0.9,
+    "temporal_smoothing_secondary": 0.7,
+    "noise_decay": 0.6
+}
