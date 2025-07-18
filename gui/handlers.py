@@ -1,4 +1,5 @@
 from utils.globals import Globals
+from utils import preset_loader
 
 
 def timeshift_sliderfunc(app, x):
@@ -20,3 +21,7 @@ def temporal_smoothing_secondary_sliderfunc(app, x):
 
 def noise_decay_sliderfunc(app, x):
     app.noise_decay_slider.update(int(x))
+
+
+def save_preset(app):
+    preset_loader.save_settings()

@@ -284,7 +284,9 @@ class AppStructure:
         if mp3_id is None:
             mp3_id = tools.generate_uuid()
         Globals.uuid = mp3_id
+        logger.log('Adding UUID to the loaded file...', Logtype.info)
         data_extract.add_uuid(Globals.source_path, Globals.uuid)
+        logger.log('UUID added to loaded file.', Logtype.info)
 
         # Loading settings from the file into Globals
         preset_loader.load_settings(default=False)
@@ -413,6 +415,13 @@ class AppStructure:
 
         sliders_frame = tk.Frame(settings_window)
         sliders_frame.pack()
+
+        save_button = tk.Button(
+            settings_window,
+            text='Save current settings',
+            command=lambda: gui.handlers.save_preset(self)
+        )
+        save_button.pack(pady=10)
 
         # CLOSE BUTTON
         close_button = tk.Button(
