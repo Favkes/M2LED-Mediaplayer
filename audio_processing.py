@@ -17,7 +17,7 @@ def audio_thread(thread_index: int):
     logger.log(f'Creating playback of index {thread_index}', Logtype.create)
 
     # Loading the play_buffer object
-    Globals.play_obj = functionality.get_wav_at_second(
+    Globals.play_obj = tools.get_wav_at_second(
         Globals.song_container,
         Globals.time_progress
     ).play()
