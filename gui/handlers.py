@@ -1,4 +1,3 @@
-from utils.globals import Globals
 from utils import preset_loader
 
 
