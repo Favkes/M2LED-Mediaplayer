@@ -10,7 +10,7 @@ from utils import data_extract
 #       each mp3, and then use them automatically (or not ofc)
 
 
-source_path:       str                  = "./Music/Tenebre Rosso Sangue.mp3"
+source_path:       str                  = "../Music/Tenebre Rosso Sangue.mp3"
 time_progress_max: int                  = round(data_extract.grab_duration(source_path) + 0.5)
 song_container:    pydub.AudioSegment   = pydub.AudioSegment.from_mp3(source_path)
 fps:               int                  = 30
@@ -110,32 +110,6 @@ class Globals:
         cls.is_unfinished = False
         cls.is_playback_thread_alive[:] = [False] * len(cls.is_playback_thread_alive)
 
-    # @classmethod
-    # def save_settings(cls) -> None:
-    #     settings = {
-    #         'time_offset': cls.time_offset,
-    #         'temporal_smoothing': cls.temporal_smoothing,
-    #         'temporal_smoothing_secondary': cls.temporal_smoothing_secondary,
-    #         'noise_decay': cls.noise_decay
-    #     }
-    #     with open('data/default_preset.json', 'w+') as file:
-    #         json.dump(settings, file, indent=4)
-
-    # @classmethod
-    # def load_settings(cls, default: bool = False) -> None:
-    #     path = f'presets/{Globals.uuid}.json'
-    #     if default or not os.path.exists(path):
-    #         path = 'data/default_preset.json'
-    #
-    #     with open(path) as file:
-    #         settings: dict = json.load(file)
-    #
-    #     for key, value in settings.items():
-    #         setattr(cls, key, value)
-    #
-    #     # Updating the Slider objects assigned to certain Globals.params
-    #     for slider in Slider.registered_sliders:
-    #         slider.update(settings[slider.linked_global])
 
 
 del fps
