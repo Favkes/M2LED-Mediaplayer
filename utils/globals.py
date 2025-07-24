@@ -1,4 +1,6 @@
 import time
+import tkinter as tk
+
 import numpy as np
 import pydub
 import simpleaudio as sa
@@ -57,6 +59,9 @@ class Globals:
     graph_1: np.ndarray                 = None
     graph_2: np.ndarray                 = None
     out_arr: np.ndarray                 = None
+
+    is_loading_presets: tk.BooleanVar   = None
+    is_saving_presets: tk.BooleanVar    = None
 
 
     @classmethod

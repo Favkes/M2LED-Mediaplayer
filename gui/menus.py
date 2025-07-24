@@ -6,9 +6,10 @@ from utils.globals import Globals
 class Menu(tk.Menu):
     def __init__(self, app_root: tk.Tk):
         super().__init__(app_root)
-        self.is_loading_presets = tk.BooleanVar(value=True)
-        self.is_saving_presets = tk.BooleanVar(value=True)
         self.root = app_root
+
+        Globals.is_loading_presets = tk.BooleanVar(value=True)
+        Globals.is_saving_presets = tk.BooleanVar(value=True)
 
         self.playlist_menu = None
         self.preset_menu = None
@@ -40,11 +41,11 @@ class Menu(tk.Menu):
         )
         self.preset_menu.add_checkbutton(
             label="Save automatically", command=lambda: print('Saving automatically switched...'),
-            variable=self.is_saving_presets
+            variable=Globals.is_saving_presets
         )
         self.preset_menu.add_checkbutton(
             label="Load automatically", command=lambda: print('Loading automatically switched'),
-            variable=self.is_loading_presets
+            variable=Globals.is_loading_presets
         )
 
 
