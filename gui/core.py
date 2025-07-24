@@ -10,6 +10,7 @@ from utils.simple_logs import Logger, Logtype
 import audio_processing
 from gui.slider import Slider
 import gui.handlers
+from gui import menus
 
 
 logger = Logger(__name__, 'purple')
@@ -27,6 +28,9 @@ class AppStructure:
         self.root_window.title("M2LED Beta-1.0")
         self.root_window.geometry(f"{Globals.win_x}x{Globals.win_y}")
         self.root_window.resizable(False, False)
+
+        self.main_menu = menus.Menu(self.root_window)
+        self.root_window.config(menu=self.main_menu)
 
         self.main_frame = tk.Frame(self.root_window)
         self.main_frame.grid(
@@ -415,13 +419,6 @@ class AppStructure:
 
         sliders_frame = tk.Frame(settings_window)
         sliders_frame.pack()
-
-        save_button = tk.Button(
-            settings_window,
-            text='Save current settings',
-            command=lambda: gui.handlers.save_preset(self)
-        )
-        save_button.pack(pady=10)
 
         # CLOSE BUTTON
         close_button = tk.Button(
