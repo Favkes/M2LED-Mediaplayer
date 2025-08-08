@@ -12,7 +12,7 @@ from utils import data_extract
 #       each mp3, and then use them automatically (or not ofc)
 
 
-source_path:       str                  = "./Music/Tenebre Rosso Sangue.mp3"
+source_path:       str                  = "./Music/dummy.mp3"
 time_progress_max: int                  = round(data_extract.grab_duration(source_path) + 0.5)
 song_container:    pydub.AudioSegment   = pydub.AudioSegment.from_mp3(source_path)
 fps:               int                  = 30

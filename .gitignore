@@ -1,5 +1,6 @@
 /workshop/
-/Music/
+/Music/*
+!/Music/dummy.mp3
 /.venv/
 /.idea/
 /previous_version_files/
