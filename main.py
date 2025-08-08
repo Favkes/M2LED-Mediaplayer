@@ -31,10 +31,13 @@ def cleanup():
 
 
 if __name__ == "__main__":
+    exception = None
+
     try:
         main()
 
-    except:
+    except Exception as e:
+        exception = str(e)
         logger.log('CRITICAL ERROR - Program exit imminent.', Logtype.error)
 
     finally:
@@ -42,3 +45,6 @@ if __name__ == "__main__":
         cleanup()
 
     logger.log('Program exited successfully.', Logtype.info)
+
+    if exception is not None:
+        logger.log(f'Error code: {exception}', Logtype.error)
