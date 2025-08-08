@@ -22,7 +22,7 @@ logger = Logger(__name__, 'yellow')
 
 
 NUM_LEDS: int   = 185
-PORT: str       = "COM3"
+PORT: str       = "/dev/ttyUSB0"
 BANDRATE: int   = 115200
 TIMEOUT: int    = 1
 ser: serial.Serial
