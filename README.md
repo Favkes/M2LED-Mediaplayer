@@ -12,7 +12,7 @@ sudo usermod -a -G dialout $USER
 ```
 
 ## **Execution**
-To run the program, simply open `run.bat` .
+To run the program, simply open `run.sh` .
 
 
 ## **Intents**
