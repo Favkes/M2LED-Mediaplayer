@@ -13,6 +13,8 @@ def save_settings() -> None:
         'temporal_smoothing_secondary': Globals.temporal_smoothing_secondary,
         'noise_decay': Globals.noise_decay
     }
+    if not os.path.exists('presets/'):
+        os.mkdir('presets/')
     with open(f'presets/{Globals.uuid}.json', 'w+') as file:
         json.dump(settings, file, indent=4)
 
