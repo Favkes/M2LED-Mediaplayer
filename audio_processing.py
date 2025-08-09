@@ -32,8 +32,11 @@ def audio_thread(thread_index: int):
     if Globals.song_container.channels == 2:
         samples = samples.reshape((-1, 2))
         samples = samples.mean(axis=1)
+
     # normalize
-    samples = samples / np.max(np.abs(samples))
+    max_sample = np.max(np.abs(samples))
+    if max_sample != 0:
+        samples = samples / max_sample
 
     ascending_arr = np.array([i for i in range(Globals.graph_x - Globals.bass_cut)], dtype=np.uint16)
     previous_frame = np.zeros(Globals.samples_per_frame // 2 + 1, np.uint8)
