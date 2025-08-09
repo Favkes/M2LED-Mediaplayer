@@ -5,6 +5,12 @@ allowing simple and explicit control over
 LED-Strip controlling software.
 
 
+## **Setup**
+Make sure your user is in the `dialout` group to access serial ports without sudo:
+```bash
+sudo usermod -a -G dialout $USER
+```
+
 ## **Execution**
 To run the program, simply open `run.bat` .
 
