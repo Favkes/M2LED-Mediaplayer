@@ -8,3 +8,5 @@
 /gui/
 /__pycache__/
 /presets/*
+/.run/
+/.run/main.run.xml
