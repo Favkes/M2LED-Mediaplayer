@@ -170,24 +170,26 @@ def arduino_comm_thread_func():
     while not Globals.should_everything_die:
         time.sleep(0.1)
         while Globals.is_unfinished and not Globals.should_everything_die:
-            original_len = len(Globals.out_arr)
-            new_indices = np.linspace(0, Globals.graph_x, 185)
-            xp = np.arange(original_len)
-            resampled_array = np.interp(new_indices, xp, Globals.out_arr)
+            if is_connected():
+                original_len = len(Globals.out_arr)
+                new_indices = np.linspace(0, Globals.graph_x, 185)
+                xp = np.arange(original_len)
+                resampled_array = np.interp(new_indices, xp, Globals.out_arr)
 
-            instructions_array = []
-            for i, val in enumerate(resampled_array):
-                val = int(int(val)**.5)
-                if val == 0:
-                    continue
-                leddata = (
-                    i,
-                    (val, val//2, 0)
-                )
-                instructions_array.append(leddata)
-            # print('Sending:', instructions_array)
-            broadcast_colours(instructions_array)
-            # time.sleep(0.03)
+                instructions_array = []
+                for i, val in enumerate(resampled_array):
+                    val = int(int(val)**.5)
+                    if val == 0:
+                        continue
+                    leddata = (
+                        i,
+                        (val, val//2, 0)
+                    )
+                    instructions_array.append(leddata)
+                # print('Sending:', instructions_array)
+                broadcast_colours(instructions_array)
+            else:
+                time.sleep(0.5)
     disconnect()
     logger.log('Thread killed and disconnected.', Logtype.kill)
 
