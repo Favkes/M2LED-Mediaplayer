@@ -157,7 +157,8 @@ def broadcast_colours(array: list | np.ndarray):
 
 
 def arduino_comm_thread_func():
-    logger.log('Waiting for play_obj initialization to complete...', Logtype.info)
+    if Globals.play_obj is None:
+        logger.log('Waiting for play_obj initialization to complete...', Logtype.info)
     while Globals.play_obj is None:
         time.sleep(0.1)
     logger.log('play_obj connected successfully.', Logtype.info)
