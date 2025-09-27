@@ -24,6 +24,12 @@ class Logtype:
     none    = 'none'
 
 
+_message_tags = {
+    Logtype.error:   'ERROR:',
+    Logtype.warning: 'WARN: ',
+}
+
+
 class Logger:
     module_name: str
     module_colour: str
@@ -39,6 +45,7 @@ class Logger:
             + _colors[self.module_col]
             + f" {self.module_name:<20}"
             + _colors[code]
+            + _message_tags.get(code, '')
             + msg
             + _colors['none']
         )
