@@ -115,8 +115,8 @@ def set_led(index, r, g, b):
 
 
 def read_serial():
-    while ser.in_waiting > 0:
-        line = ser.readline().decode('utf-8').strip()
+    while SER.in_waiting > 0:
+        line = SER.readline().decode('utf-8').strip()
         print('Arduino says:', line)
 
 
