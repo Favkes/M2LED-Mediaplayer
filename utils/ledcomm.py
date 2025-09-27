@@ -162,6 +162,11 @@ def arduino_comm_thread_func():
     while Globals.play_obj is None:
         time.sleep(0.1)
     logger.log('play_obj connected successfully.', Logtype.info)
+
+    if not is_connected():
+        logger.log('Serial port not connected, continuing without connection to the LED strip. '
+                   'This thread will now exit.', Logtype.warning)
+
     while not Globals.should_everything_die:
         time.sleep(0.1)
         while Globals.is_unfinished and not Globals.should_everything_die:
