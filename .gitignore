@@ -5,3 +5,7 @@
 /.idea/
 /previous_version_files/
 /logs/
+/gui/
+/__pycache__/
+/presets/*
+/.run/
