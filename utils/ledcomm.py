@@ -27,6 +27,8 @@ PORT: str       = "COM3"
 BANDRATE: int   = 115200
 TIMEOUT: int    = 1
 ser: serial.Serial
+def is_connected() -> bool:
+    return SER is not None and SER.is_open
 
 
 def resize_strip(num_leds: int = 185):
@@ -44,17 +46,32 @@ def connect(port: str = PORT, bandrate: int = BANDRATE, timeout: int = TIMEOUT):
 
 
 def disconnect():
-    ser.close()
+    global SER
+
     with SERIAL_LOCK:
+        if not is_connected():
+            # logger.log('Attempted to kill the serial output instance even though marked disconnected.',
+            #            Logtype.warning)
+            return
+        else:
+            assert SER is not None
+            logger.log('Killing current serial output instance...', Logtype.kill)
+            SER.close()
+            SER = None
 
 
 def set_led(index, r, g, b):
-    message = f"{index},{r},{g},{b}\n"
-    # print(message)
-    ser.write(message.encode())
-    # message = [index, r, g, b]
-    # ser.write(bytes(message))
     with SERIAL_LOCK:
+        if not is_connected():
+            return
+
+        message = f"{index},{r},{g},{b}\n"
+
+        try:
+            SER.write(message.encode())
+        except (OSError, serial.SerialException) as e:
+            logger.log(f'Serial write failed: {e}', Logtype.warning)
+            disconnect()
 
 
 def read_serial():
