@@ -2,7 +2,9 @@ import tkinter as tk
 
 from utils.globals import Globals
 from utils.simple_logs import Logger, Logtype
+from utils import ledcomm
 import gui.handlers
+import serial.tools.list_ports
 
 
 logger = Logger(__name__, 'blue')
@@ -20,9 +22,12 @@ class Menu(tk.Menu):
 
         self.playlist_menu = None
         self.preset_menu = None
+        self.connect_menu = None
+        self.connect_menu_available_ports = None
 
         self.init_playlist_menu()
         self.init_preset_menu()
+        self.init_connect_menu()
 
 
     def init_playlist_menu(self):
@@ -63,6 +68,39 @@ class Menu(tk.Menu):
             command=lambda: gui.handlers.check_preset_load_automatically(logger),
             variable=Globals.is_loading_presets
         )
+
+
+    def init_connect_menu(self):
+        logger.log('Initializing Menu.Connect...', Logtype.init)
+
+        def safe_connect(port):
+            logger.log(f'Connecting to serial device at {port}...', Logtype.info)
+            ledcomm.connect(port=port)
+
+        def generate_connect_menu_available_ports():
+            self.connect_menu_available_ports.delete(0, 'end')
+            for port in serial.tools.list_ports.comports():
+                self.connect_menu_available_ports.add_command(
+                    label=port.device,
+                    command=lambda: safe_connect(port.device)
+                )
+
+        self.connect_menu = tk.Menu(self, tearoff=0)
+        self.add_cascade(
+            label="Connect Settings", menu=self.connect_menu
+        )
+        self.connect_menu_available_ports = tk.Menu(self.connect_menu, tearoff=0,
+                                                    postcommand=generate_connect_menu_available_ports)
+        self.connect_menu.add_cascade(
+            label='Connect to',
+            menu=self.connect_menu_available_ports,
+        )
+
+        self.connect_menu.add_command(
+            label='Disconnect',
+            command=ledcomm.disconnect
+        )
+
 
 
 
