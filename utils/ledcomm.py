@@ -66,7 +66,7 @@ def connect(port: str | None = PORT, baudrate: int = BAUDRATE, timeout: int = TI
             logger.log('No COM port available.', Logtype.info)
 
     PORT = port
-    BANDRATE = bandrate
+    BAUDRATE = baudrate
     TIMEOUT = timeout
 
     if is_connected():
