@@ -40,15 +40,49 @@ def resize_strip(num_leds: int = 185):
     NUM_LEDS = num_leds
 
 
-def connect(port: str = PORT, bandrate: int = BANDRATE, timeout: int = TIMEOUT):
-    global PORT, BANDRATE, TIMEOUT, ser
 def get_first_device_available():
     return serial.tools.list_ports.comports()[0].device
+
+
+def wait_and_connect(port: str, baudrate = 115200, timeout: int = 1, max_wait: float | int = 1):
+    start_time = time.time()
+    while time.time() - start_time < max_wait:
+        try:
+            ser = serial.Serial(port, baudrate, timeout=timeout)
+            return ser
+        except (OSError, serial.SerialException):
+            time.sleep(0.1)
+    raise TimeoutError(f"Port {port} not available after {max_wait}s")
+
+
+def connect(port: str | None = PORT, baudrate: int = BAUDRATE, timeout: int = TIMEOUT):
+    global PORT, BAUDRATE, TIMEOUT, SER
+
+    if port is None:
+        try:
+            port = get_first_device_available()
+        except IndexError:
+            PORT = None
+            logger.log('No COM port available.', Logtype.info)
+
     PORT = port
     BANDRATE = bandrate
     TIMEOUT = timeout
+
+    if is_connected():
+        disconnect()
+
     logger.log('Initializing connection with the LED strip...', Logtype.init)
-    ser = serial.Serial(port, bandrate, timeout=timeout)
+
+    try:
+        SER = wait_and_connect(port, baudrate, timeout=timeout, max_wait=2.0)
+        logger.log(f'Connection to LED strip initialized on port {port}.', Logtype.info)
+    except TimeoutError as e:
+        logger.log(f'Failed to connect: {e}', Logtype.warning)
+    except serial.SerialException as e:
+        # logger.log('Failed to connect with the LED strip, '
+        #            'the application will boot without a serial output connection.\n'+str(e), Logtype.warning)
+        logger.log(f'Serial exception: {e}', Logtype.warning)
 
 
 def disconnect():
