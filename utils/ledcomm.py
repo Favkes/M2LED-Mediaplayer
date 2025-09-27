@@ -149,7 +149,11 @@ def broadcast_colours(array: list | np.ndarray):
             set_led(index, r, g, b)
             # set_led(index, r//30 * 10, g//30 * 10, b//30 * 10)
 
-    set_led(254, 0, 0, 0)  # show() command
+        set_led(254, 0, 0, 0)  # show() command
+    except serial.SerialException:  # lost serial connection
+        logger.log('Lost serial output connection, the program will resume without broadcasting data until '
+                   'reattached manually.', Logtype.warning)
+        disconnect()
 
 
 def arduino_comm_thread_func():
