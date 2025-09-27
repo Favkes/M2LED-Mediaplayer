@@ -143,11 +143,11 @@ def broadcast_colours(array: list | np.ndarray):
         for _ in range(1):
             set_led(255, 0, 0, 0)
 
-    # sending color data:
-    for led in range(len(array)):
-        index, (r, g, b) = array[led]
-        set_led(index, r, g, b)
-        # set_led(index, r//30 * 10, g//30 * 10, b//30 * 10)
+        # sending color data:
+        for led in range(len(array)):
+            index, (r, g, b) = array[led]
+            set_led(index, r, g, b)
+            # set_led(index, r//30 * 10, g//30 * 10, b//30 * 10)
 
     set_led(254, 0, 0, 0)  # show() command
 
