@@ -10,6 +10,7 @@ import numpy as np
 from utils.globals import Globals
 import time
 from utils.simple_logs import Logger, Logtype
+import threading
 
 
 logger = Logger(__name__, 'yellow')
@@ -44,6 +45,7 @@ def connect(port: str = PORT, bandrate: int = BANDRATE, timeout: int = TIMEOUT):
 
 def disconnect():
     ser.close()
+    with SERIAL_LOCK:
 
 
 def set_led(index, r, g, b):
@@ -52,6 +54,7 @@ def set_led(index, r, g, b):
     ser.write(message.encode())
     # message = [index, r, g, b]
     # ser.write(bytes(message))
+    with SERIAL_LOCK:
 
 
 def read_serial():
