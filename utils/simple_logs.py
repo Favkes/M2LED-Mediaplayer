@@ -8,6 +8,8 @@ _colors = {
     'blue':     '\x1b[1;34;40m',
     'purple':   '\x1b[1;35;40m',
     'grey':     '\x1b[2;37;40m',
+    'orange':   '\x1b[1;31;43m',
+    'inverted-red': '\x1b[3;30;41m',
     'none':     '\x1b[0m'
 }
 
@@ -17,7 +19,8 @@ class Logtype:
     create  = 'green'
     init    = 'yellow'
     info    = 'grey'
-    error   = 'purple'
+    error   = 'inverted-red'
+    warning = 'orange'
     none    = 'none'
 
 
