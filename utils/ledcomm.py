@@ -6,6 +6,7 @@ and mapping them onto the strip automatically (yet to get optimized).
 """
 
 import serial
+import serial.tools.list_ports
 import numpy as np
 from utils.globals import Globals
 import time
@@ -22,11 +23,14 @@ logger = Logger(__name__, 'yellow')
 #       Kind of like: {1 -> (255, 0, 0), 2 -> (255, 5, 0), ...}
 
 
-NUM_LEDS: int   = 185
-PORT: str       = "COM3"
-BANDRATE: int   = 115200
-TIMEOUT: int    = 1
-ser: serial.Serial
+NUM_LEDS: int       = 185
+PORT: str | None    = None
+BAUDRATE: int       = 115200
+TIMEOUT: int        = 1
+SER: serial.Serial | None  = None
+SERIAL_LOCK         = threading.Lock()
+
+
 def is_connected() -> bool:
     return SER is not None and SER.is_open
 
@@ -38,6 +42,8 @@ def resize_strip(num_leds: int = 185):
 
 def connect(port: str = PORT, bandrate: int = BANDRATE, timeout: int = TIMEOUT):
     global PORT, BANDRATE, TIMEOUT, ser
+def get_first_device_available():
+    return serial.tools.list_ports.comports()[0].device
     PORT = port
     BANDRATE = bandrate
     TIMEOUT = timeout
