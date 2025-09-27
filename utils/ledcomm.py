@@ -135,9 +135,13 @@ def broadcast_indices(array: list | np.ndarray):
 
 
 def broadcast_colours(array: list | np.ndarray):
-    # repeating the command to ensure it comes through:
-    for _ in range(1):
-        set_led(255, 0, 0, 0)
+    if not is_connected():
+        return
+
+    try:
+        # repeating the command to ensure it comes through:
+        for _ in range(1):
+            set_led(255, 0, 0, 0)
 
     # sending color data:
     for led in range(len(array)):
