@@ -4,6 +4,7 @@ import tkinter as tk
 import numpy as np
 import pydub
 import simpleaudio as sa
+from sys import platform
 
 from utils import data_extract
 
@@ -45,6 +46,7 @@ class Globals:
     time_offset                         = -0.65                       # Time in [s] that the FFT is ahead of playback
 
     play_obj: sa.play_buffer            = None                        # Music playing object
+    platform: str                       = platform
     rate                                = song_container.frame_rate
     samples_per_frame                   = samples_per_frame
     source_path                         = source_path                 # MP3 file path
