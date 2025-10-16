@@ -5,7 +5,8 @@ import colorama
 
 
 # Initializing color support for cmd.exe
-colorama.init()
+if Globals.platform == 'linux' or Globals.platform == 'linux2':
+    colorama.init()
 
 
 logger = Logger(__name__, 'green')
