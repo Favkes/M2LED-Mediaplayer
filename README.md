@@ -14,10 +14,10 @@ sudo usermod -a -G dialout $USER
 
 ## **Execution**
 
-# **Windows**
+### **Windows**
 To run the program, simply open `run.bat` .
 
-# **Linux**
+### **Linux**
 To run the program, simply open `run.sh`.
 
 
