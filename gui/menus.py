@@ -80,6 +80,9 @@ class Menu(tk.Menu):
         def generate_connect_menu_available_ports():
             self.connect_menu_available_ports.delete(0, 'end')
             for port in serial.tools.list_ports.comports():
+                if Globals.platform == 'linux' or Globals.platform == 'linux2':
+                    if not port.device[5:].startswith('ttyUSB'):
+                        continue
                 self.connect_menu_available_ports.add_command(
                     label=port.device,
                     command=lambda: safe_connect(port.device)
